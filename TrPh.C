@@ -75,6 +75,9 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
   TH1F h_vtx1_z("h_vtx1_z", "", 600, -30, 30);
   TH1F h_vtx0_r("h_vtx0_r", "", 600, 0, 60);
   TH1F h_vtx1_dr("h_vtx1_dr", "", 600, 0, 60);
+  TH1F h_ksminv("ksminv", "", 512, 0, 2000);
+  TH2F h_kfm_ksminv("kfm_ksminv", "", 512, 0, 2000, 512, 0, 2000);
+  TH2F h_inm_ksminv("inm_ksminv", "", 512, 0, 2000, 512, 0, 2000);
   fChain->GetEntry(0);
   KFCmd::Hypo3ChPionsKPlus hypo_plus(2 * emeas, magneticField);
   hypo_plus.fixVertexComponent("vtx0", xbeam, KFBase::VERTEX_X);
@@ -106,6 +109,9 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
     nb = fChain->GetEntry(jentry);
     nbytes += nb;
     if (Cut(ientry) < 0) continue;
+    if (nks != 1) continue;
+    hypo_plus.setBeamXY(xbeam, ybeam);
+    hypo_minus.setBeamXY(xbeam, ybeam);
     flag_plus = false;
     flag_minus = false;
     kf_chi2_plus = std::numeric_limits<double>::infinity();
@@ -151,7 +157,7 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
 	}
       }
     }
-
+    
     if (flag_plus && flag_minus) {
       if (kf_chi2_plus > kf_chi2_minus) {
 	flag_plus = false;
@@ -163,6 +169,9 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
     if (flag_plus) {
       h_kf_chi2.Fill(kf_chi2_plus);
       if (kf_chi2_plus < 100) {
+	h_inm_ksminv.Fill(v_in_mks_plus, ksminv[0]);
+	h_kfm_ksminv.Fill(v_kf_mks_plus, ksminv[0]);
+	h_ksminv.Fill(ksminv[0]);
 	h_in_mks.Fill(v_in_mks_plus);
 	h_kf_mks.Fill(v_kf_mks_plus);
 	h_vtx0_x.Fill(v_vtx0_plus.X());
@@ -179,6 +188,9 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
     if (flag_minus) {
       h_kf_chi2.Fill(kf_chi2_minus);
       if (kf_chi2_minus < 100) {
+	h_inm_ksminv.Fill(v_in_mks_minus, ksminv[0]);
+	h_kfm_ksminv.Fill(v_kf_mks_minus, ksminv[0]);
+	h_ksminv.Fill(ksminv[0]);
 	h_in_mks.Fill(v_in_mks_minus);
 	h_kf_mks.Fill(v_kf_mks_minus);
 	h_vtx0_x.Fill(v_vtx0_minus.X());
@@ -205,5 +217,8 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
   h_vtx1_z.Write();
   h_vtx0_r.Write();
   h_vtx1_dr.Write();
+  h_ksminv.Write();
+  h_inm_ksminv.Write();
+  h_kfm_ksminv.Write();
   outfl->Close();
 }
