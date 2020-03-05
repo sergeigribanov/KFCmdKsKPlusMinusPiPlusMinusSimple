@@ -55,6 +55,7 @@ Int_t TrPh::Cut(Long64_t) {
   if (!cutTracks()) return -1;
   // if (!cutPhotons()) return -1;
   std::vector<Int_t> charges(nt);
+  std::copy(tcharge, tcharge + nt, charges.begin());
   std::sort(_trackIndices.begin(), _trackIndices.end(),
             [&charges](int i, int j) { return charges[i] < charges[j]; });
   return 1;
