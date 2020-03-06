@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 #include <limits>
 #include <set>
 
@@ -81,9 +82,11 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
   TH2F h_inm_ksminv("inm_ksminv", "", 512, 0, 2000, 512, 0, 2000);
   fChain->GetEntry(0);
   KFCmd::Hypo3ChPionsKPlus hypo_plus(2 * emeas, magneticField);
+  hypo_plus.setBeamXY(xbeam, ybeam);
   hypo_plus.fixVertexComponent("vtx0", xbeam, KFBase::VERTEX_X);
   hypo_plus.fixVertexComponent("vtx0", ybeam, KFBase::VERTEX_Y);
   KFCmd::Hypo3ChPionsKMinus hypo_minus(2 * emeas, magneticField);
+  hypo_minus.setBeamXY(xbeam, ybeam);
   hypo_minus.fixVertexComponent("vtx0", xbeam, KFBase::VERTEX_X);
   hypo_minus.fixVertexComponent("vtx0", ybeam, KFBase::VERTEX_Y);
   Long64_t nentries = fChain->GetEntriesFast();
@@ -112,7 +115,11 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
     if (Cut(ientry) < 0) continue;
     if (nks != 1) continue;
     hypo_plus.setBeamXY(xbeam, ybeam);
+    hypo_plus.fixVertexComponent("vtx0", xbeam, KFBase::VERTEX_X);
+    hypo_plus.fixVertexComponent("vtx0", ybeam, KFBase::VERTEX_Y);
     hypo_minus.setBeamXY(xbeam, ybeam);
+    hypo_minus.fixVertexComponent("vtx0", xbeam, KFBase::VERTEX_X);
+    hypo_minus.fixVertexComponent("vtx0", ybeam, KFBase::VERTEX_Y);
     flag_plus = false;
     flag_minus = false;
     kf_chi2_plus = std::numeric_limits<double>::infinity();
