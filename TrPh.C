@@ -80,6 +80,9 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
   TH1F h_ksminv("ksminv", "", 512, 0, 2000);
   TH2F h_kfm_ksminv("kfm_ksminv", "", 512, 0, 2000, 512, 0, 2000);
   TH2F h_inm_ksminv("inm_ksminv", "", 512, 0, 2000, 512, 0, 2000);
+  TH2F h_pdedx_k("pdedx_k", "", 1024, 0, 16384, 1024, 0, 1024);
+  TH2F h_piv("pdedx_piv", "", 1024, 0, 16384, 1024, 0, 1024);
+  TH2F h_pib("pdedx_pib", "", 1024, 0, 16384, 1024, 0, 1024);
   fChain->GetEntry(0);
   KFCmd::Hypo3ChPionsKPlus hypo_plus(2 * emeas, magneticField);
   hypo_plus.setBeamXY(xbeam, ybeam);
@@ -103,6 +106,21 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
   double v_kf_mks_minus = 0;
   double v_in_mks_minus = 0;
 
+  double v_dedx_plus = 0;
+  double v_p_plus = 0;
+  double v_dedx_minus = 0;
+  double v_p_minus = 0;
+
+  double v_dedx_piv_plus[2] = {0., 0.};
+  double v_p_piv_plus[2] = {0., 0.};
+  double v_dedx_piv_minus[2] = {0., 0.};
+  double v_p_piv_minus[2] = {0., 0.};
+
+  double v_dedx_pib_plus = 0;
+  double v_p_pib_plus = 0;
+  double v_dedx_pib_minus = 0;
+  double v_p_pib_minus = 0;
+  
   TVector3 v_vtx0_plus;
   TVector3 v_vtx1_plus;
   TVector3 v_vtx0_minus;
@@ -141,6 +159,15 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
 	  v_kf_mks_plus = hypo_plus.getFinalMomentum(sKs).M();
 	  v_vtx0_plus = hypo_plus.getFinalVertex("vtx0");
 	  v_vtx1_plus = hypo_plus.getFinalVertex("vtx1");
+
+	  v_dedx_plus = tdedx[_trackIndices[5 - ip]];
+	  v_p_plus = hypo_plus.getFinalMomentum("k+").P();
+	  v_dedx_piv_plus[0] = tdedx[_trackIndices[im]];
+	  v_dedx_piv_plus[1] = tdedx[_trackIndices[ip]];
+	  v_p_piv_plus[0] = hypo_plus.getFinalMomentum("pi-_0").P();
+	  v_p_piv_plus[1] = hypo_plus.getFinalMomentum("pi+_0").P();
+	  v_dedx_pib_plus = tdedx[_trackIndices[1 - im]];
+	  v_p_pib_plus = hypo_plus.getFinalMomentum("pi-_1").P();
 	}
       }
     }
@@ -162,6 +189,15 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
 	  v_kf_mks_minus = hypo_minus.getFinalMomentum(sKs).M();
 	  v_vtx0_minus = hypo_minus.getFinalVertex("vtx0");
 	  v_vtx1_minus = hypo_minus.getFinalVertex("vtx1");
+
+	  v_dedx_minus = tdedx[_trackIndices[1 - im]];
+	  v_p_minus = hypo_minus.getFinalMomentum("k-").P();
+	  v_dedx_piv_minus[0] = tdedx[_trackIndices[im]];
+	  v_dedx_piv_minus[1] = tdedx[_trackIndices[ip]];
+	  v_p_piv_minus[0] = hypo_minus.getFinalMomentum("pi-_0").P();
+	  v_p_piv_minus[1] = hypo_minus.getFinalMomentum("pi+_0").P();
+	  v_dedx_pib_minus = tdedx[_trackIndices[5 - ip]];
+	  v_p_pib_minus = hypo_minus.getFinalMomentum("pi+_1").P();
 	}
       }
     }
@@ -190,6 +226,10 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
 	h_vtx1_z.Fill(v_vtx1_plus.Z());
 	h_vtx0_r.Fill(v_vtx0_plus.Perp());
 	h_vtx1_dr.Fill((v_vtx1_plus - v_vtx0_plus).Perp());
+	h_pdedx_k.Fill(v_dedx_plus, v_p_plus);
+	h_piv.Fill(v_dedx_piv_plus[0], v_p_piv_plus[0]);
+	h_piv.Fill(v_dedx_piv_plus[1], v_p_piv_plus[1]);
+	h_pib.Fill(v_dedx_pib_plus, v_p_pib_plus);
       }
     }
 
@@ -209,10 +249,20 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
 	h_vtx1_z.Fill(v_vtx1_minus.Z());
 	h_vtx0_r.Fill(v_vtx0_minus.Perp());
 	h_vtx1_dr.Fill((v_vtx1_minus - v_vtx0_minus).Perp());
+	h_pdedx_k.Fill(v_p_minus, v_dedx_minus);
+	h_piv.Fill(v_dedx_piv_minus[0], v_p_piv_minus[0]);
+	h_piv.Fill(v_dedx_piv_minus[1], v_p_piv_minus[1]);
+	h_pib.Fill(v_dedx_pib_minus, v_p_pib_minus);
       }
     }
     
   }
+  h_pdedx_k.SetMarkerColor(2);
+  h_piv.SetMarkerColor(4);
+  h_pib.SetMarkerColor(3);
+  h_pdedx_k.SetMarkerStyle(6);
+  h_piv.SetMarkerStyle(6);
+  h_pib.SetMarkerStyle(6);
   outfl->cd();
   h_kf_chi2.Write();
   h_in_mks.Write();
@@ -228,5 +278,8 @@ void TrPh::Loop(const std::string& outpath, double magneticField) {
   h_ksminv.Write();
   h_inm_ksminv.Write();
   h_kfm_ksminv.Write();
+  h_pdedx_k.Write();
+  h_piv.Write();
+  h_pib.Write();
   outfl->Close();
 }
