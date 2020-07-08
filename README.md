@@ -1,4 +1,4 @@
-# KFCmdKsKPlusMinusPiPlusMinus
+# KFCmdKsKpi
 A simple (pi+pi-)(K+-pi-+) hypothesis test (2 vertices).
 
 ## Dependencies
